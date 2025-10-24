@@ -11,3 +11,6 @@ wheels/
 
 # API key files
 .env
+
+# Marimo notebook metadata files
+__marimo__
