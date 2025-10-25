@@ -4,6 +4,18 @@ __generated_with = "0.17.0"
 app = marimo.App(width="medium")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(
+        r"""
+    # OpenAI responses API practice
+
+    At the time of writing, the responses API is a bit new, so let's practice. OpenAI states that Responses is recommended for all new projects.
+    """
+    )
+    return
+
+
 @app.cell
 def _():
     import marimo as mo
@@ -16,11 +28,10 @@ def _():
 
 
 @app.cell
-def _(Path, find_dotenv, load_dotenv, mo):
+def _(Path, find_dotenv, load_dotenv):
     # Grab the API key from detected .env file and create a client. By default the client checks for OPENAI_API_KEY environment variable.
     path_dotenv_file = Path(find_dotenv())
     load_dotenv(path_dotenv_file, override=True)
-    mo.stop()
     return
 
 
@@ -28,7 +39,7 @@ def _(Path, find_dotenv, load_dotenv, mo):
 def _(mo):
     mo.md(
         r"""
-    # OpenAI Responses API
+    # 1. OpenAI Responses API
 
     I noticed a useful [migration guide](https://platform.openai.com/docs/guides/migrate-to-responses) for those more familiar with Chat completions API. Let's try do some basic streaming responses with it.
     """
@@ -42,7 +53,7 @@ def _(OpenAI):
 
     # If you're using pay-as-you-go tier like me, cold start probably takes 15-20 secs before getting any streamed output
     with client.responses.create(
-        model="gpt-5-nano",
+        model="gpt-4.1-nano",
         input=[
             {
                 "role": "user",
@@ -60,25 +71,25 @@ def _(OpenAI):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md(
         r"""
-    # Async chat responses?
+    # 2. Async chat responses
 
-    It would be nice to try out async method for OpenAI chat responses, but I do not yet know if I can do that within a Marimo notebook. I will write a potential example here for later reference (or to copy paste and try out in the terminal)
+    Let's also try asynchronous chat responses, will be important for something like FastAPI later on.
     """
     )
     return
 
 
 @app.cell
-def _(AsyncOpenAI, asyncio):
+async def _(AsyncOpenAI, asyncio):
     client_async = AsyncOpenAI()
 
     async def main():
         async with client_async.responses.stream(
-            model="gpt-5-nano",
+            model="gpt-4.1-nano",
             input=[{"role": "user", "content": "Write a riddle consisting of ten sentences."}],
         ) as stream:
             async for event in stream:
@@ -87,7 +98,12 @@ def _(AsyncOpenAI, asyncio):
                 elif event.type == "response.completed":
                     print("\n\n--- Completed streaming")
 
-    asyncio.run(main())
+    # Note: asyncio.run(main()) will not work on a Marimo notebook
+    try:
+        asyncio.get_running_loop()
+        await main()
+    except RuntimeError:
+        asyncio.run(main())
     return
 
 
